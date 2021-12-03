@@ -5,6 +5,7 @@ If one thing can do use script automatically, do not again by manual.
 
 # Tool
 - tool-code-count.py: code count for debian package.
+- tool-git-filter-branch.sh: rewrite all commit information
 
 # Script
 - install-elk-stack.sh: a script for install Elastic, Logstash and Kibana.
