@@ -2,7 +2,7 @@
 
 # Description: this is a script for install elk stack on Linux
 # Usage      : you can pass wanted version at first parameter
-# Author     : wikinee
+# Author     : yongliang
 # Changelog  : 2021.09.11 first release
 
 echo "this script only install package, you MUST configurate software by youself"

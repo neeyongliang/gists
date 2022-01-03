@@ -35,7 +35,7 @@ class CodeCount:
         无法简单的通过 -[0-9](.*) 匹配到
 
     作者：
-        wikinee
+        yongliang
 
     版本：
         0.2
