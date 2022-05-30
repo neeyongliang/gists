@@ -11,7 +11,8 @@ If one thing can do use script automatically, do not again by manual.
 # Script
 - install-elk-stack.sh: a script for install Elastic, Logstash and Kibana.
 
-
+# Patch
+- patch-qt-5.6.3-webkit-backport.patch：QtWebkit 5.6.3 backport patch
 
 # 代码片段
 笨拙编码，智慧做人。
@@ -26,3 +27,6 @@ If one thing can do use script automatically, do not again by manual.
 
 ## 脚本类
 - install-elk-stack.sh: Elastic，Logstash，Kibana 的安装脚本
+
+# 补丁类
+- patch-qt-5.6.3-webkit-backport.patch：QtWebKit 5.6.3 组件的兼容性补丁

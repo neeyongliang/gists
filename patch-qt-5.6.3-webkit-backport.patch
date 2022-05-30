@@ -1,0 +1,153 @@
+From 9c1ffb30068053c84d4daf9bba1723715590a244 Mon Sep 17 00:00:00 2001
+From: neeyongliang <neeyongliang@gmail.com>
+Date: Sun, 29 May 2022 15:09:34 +0800
+Subject: [PATCH] qt 5.6.3 fix jschar convert to uchar error for kylin
+
+---
+ Source/JavaScriptCore/API/JSStringRef.cpp        | 6 +++---
+ Source/JavaScriptCore/API/JSStringRef.h          | 3 ++-
+ Source/JavaScriptCore/runtime/DateConversion.cpp | 3 ++-
+ Source/WTF/wtf/Compiler.h                        | 2 ++
+ Source/WTF/wtf/TypeTraits.h                      | 4 ++++
+ Source/WebKit2/Shared/API/c/WKString.cpp         | 2 +-
+ Source/WebKit2/Shared/API/c/WKString.h           | 3 ++-
+ 7 files changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/Source/JavaScriptCore/API/JSStringRef.cpp b/Source/JavaScriptCore/API/JSStringRef.cpp
+index 812f3d4..77a3fd0 100644
+--- a/Source/JavaScriptCore/API/JSStringRef.cpp
++++ b/Source/JavaScriptCore/API/JSStringRef.cpp
+@@ -37,7 +37,7 @@ using namespace WTF::Unicode;
+ JSStringRef JSStringCreateWithCharacters(const JSChar* chars, size_t numChars)
+ {
+     initializeThreading();
+-    return OpaqueJSString::create(chars, numChars).leakRef();
++    return OpaqueJSString::create(reinterpret_cast<const UChar*>(chars), numChars).leakRef();
+ }
+
+ JSStringRef JSStringCreateWithUTF8CString(const char* string)
+@@ -62,7 +62,7 @@ JSStringRef JSStringCreateWithUTF8CString(const char* string)
+ JSStringRef JSStringCreateWithCharactersNoCopy(const JSChar* chars, size_t numChars)
+ {
+     initializeThreading();
+-    return OpaqueJSString::create(StringImpl::createWithoutCopying(chars, numChars, WTF::DoesNotHaveTerminatingNullCharacter)).leakRef();
++    return OpaqueJSString::create(StringImpl::createWithoutCopying(reinterpret_cast<const UChar*>(chars), numChars, WTF::DoesNotHaveTerminatingNullCharacter)).leakRef();
+ }
+
+ JSStringRef JSStringRetain(JSStringRef string)
+@@ -83,7 +83,7 @@ size_t JSStringGetLength(JSStringRef string)
+
+ const JSChar* JSStringGetCharactersPtr(JSStringRef string)
+ {
+-    return string->characters();
++    return reinterpret_cast<const JSChar*>(string->characters());
+ }
+
+ size_t JSStringGetMaximumUTF8CStringSize(JSStringRef string)
+diff --git a/Source/JavaScriptCore/API/JSStringRef.h b/Source/JavaScriptCore/API/JSStringRef.h
+index 75d73c9..d05fe7d 100644
+--- a/Source/JavaScriptCore/API/JSStringRef.h
++++ b/Source/JavaScriptCore/API/JSStringRef.h
+@@ -32,6 +32,7 @@
+ #include <stdbool.h>
+ #endif
+ #include <stddef.h> /* for size_t */
++#include <uchar.h>
+
+ #ifdef __cplusplus
+ extern "C" {
+@@ -43,7 +44,7 @@ extern "C" {
+ @typedef JSChar
+ @abstract A Unicode character.
+ */
+-    typedef unsigned short JSChar;
++    typedef char16_t JSChar;
+ #else
+     typedef wchar_t JSChar;
+ #endif
+diff --git a/Source/JavaScriptCore/runtime/DateConversion.cpp b/Source/JavaScriptCore/runtime/DateConversion.cpp
+index 0b57f01..05e2733 100644
+--- a/Source/JavaScriptCore/runtime/DateConversion.cpp
++++ b/Source/JavaScriptCore/runtime/DateConversion.cpp
+@@ -107,7 +107,8 @@ String formatDateTime(const GregorianDateTime& t, DateTimeFormat format, bool as
+ #if OS(WINDOWS)
+             TIME_ZONE_INFORMATION timeZoneInformation;
+             GetTimeZoneInformation(&timeZoneInformation);
+-            const WCHAR* timeZoneName = t.isDST() ? timeZoneInformation.DaylightName : timeZoneInformation.StandardName;
++            const WCHAR* winTimeZoneName = t.isDST() ? timeZoneInformation.DaylightName : timeZoneInformation.StandardName;
++            String timeZoneName(reinterpret_cast<const UChar*>(winTimeZoneName));
+ #else
+             struct tm gtm = t;
+             char timeZoneName[70];
+diff --git a/Source/WTF/wtf/Compiler.h b/Source/WTF/wtf/Compiler.h
+index ead844f..e62cfd4 100644
+--- a/Source/WTF/wtf/Compiler.h
++++ b/Source/WTF/wtf/Compiler.h
+@@ -61,6 +61,7 @@
+ #define WTF_COMPILER_SUPPORTS_HAS_TRIVIAL_DESTRUCTOR __has_feature(has_trivial_destructor)
+ #define WTF_COMPILER_SUPPORTS_CXX_STRONG_ENUMS __has_feature(cxx_strong_enums)
+ #define WTF_COMPILER_SUPPORTS_CXX_REFERENCE_QUALIFIED_FUNCTIONS __has_feature(cxx_reference_qualified_functions)
++#define WTF_COMPILER_SUPPORTS_CXX_NEW_CHAR_TYPES !defined(_LIBCPP_HAS_NO_UNICODE_CHARS)
+
+ #endif
+
+@@ -142,6 +143,7 @@
+ #define WTF_COMPILER_SUPPORTS_CXX_DELETED_FUNCTIONS 1
+ #endif
+ #if GCC_VERSION_AT_LEAST(4, 5, 0)
++#define WTF_COMPILER_SUPPORTS_CXX_NEW_CHAR_TYPES 1
+ #define WTF_COMPILER_SUPPORTS_CXX_EXPLICIT_CONVERSIONS 1
+ #endif
+ #if GCC_VERSION_AT_LEAST(4, 6, 0)
+diff --git a/Source/WTF/wtf/TypeTraits.h b/Source/WTF/wtf/TypeTraits.h
+index 9df2c95..a4ee17e 100644
+--- a/Source/WTF/wtf/TypeTraits.h
++++ b/Source/WTF/wtf/TypeTraits.h
+@@ -75,6 +75,10 @@ namespace WTF {
+ #if !COMPILER(MSVC) || defined(_NATIVE_WCHAR_T_DEFINED)
+     template<> struct IsInteger<wchar_t>            { static const bool value = true; };
+ #endif
++#if COMPILER_SUPPORTS(CXX_NEW_CHAR_TYPES)
++    template<> struct IsInteger<char16_t>           { static const bool value = true; };
++    template<> struct IsInteger<char32_t>           { static const bool value = true; };
++#endif
+
+     template<typename T> struct IsFloatingPoint     { static const bool value = false; };
+     template<> struct IsFloatingPoint<float>        { static const bool value = true; };
+diff --git a/Source/WebKit2/Shared/API/c/WKString.cpp b/Source/WebKit2/Shared/API/c/WKString.cpp
+index cbac67d..23400a6 100644
+--- a/Source/WebKit2/Shared/API/c/WKString.cpp
++++ b/Source/WebKit2/Shared/API/c/WKString.cpp
+@@ -55,7 +55,7 @@ size_t WKStringGetLength(WKStringRef stringRef)
+ size_t WKStringGetCharacters(WKStringRef stringRef, WKChar* buffer, size_t bufferLength)
+ {
+     COMPILE_ASSERT(sizeof(WKChar) == sizeof(UChar), WKStringGetCharacters_sizeof_WKChar_matches_UChar);
+-    return (toImpl(stringRef)->getCharacters(static_cast<UChar*>(buffer), bufferLength));
++    return (toImpl(stringRef)->getCharacters(reinterpret_cast<UChar*>(buffer), bufferLength));
+ }
+
+ size_t WKStringGetMaximumUTF8CStringSize(WKStringRef stringRef)
+diff --git a/Source/WebKit2/Shared/API/c/WKString.h b/Source/WebKit2/Shared/API/c/WKString.h
+index f02c455..ac7a7d8 100644
+--- a/Source/WebKit2/Shared/API/c/WKString.h
++++ b/Source/WebKit2/Shared/API/c/WKString.h
+@@ -31,6 +31,7 @@
+ #ifndef __cplusplus
+ #include <stdbool.h>
+ #endif
++#include <uchar.h>
+
+ #ifdef __cplusplus
+ extern "C" {
+@@ -38,7 +39,7 @@ extern "C" {
+
+ #if !defined(WIN32) && !defined(_WIN32) \
+     && !((defined(__CC_ARM) || defined(__ARMCC__)) && !defined(__linux__)) /* RVCT */
+-    typedef unsigned short WKChar;
++    typedef char16_t WKChar;
+ #else
+     typedef wchar_t WKChar;
+ #endif
+--
+2.7.4
+
