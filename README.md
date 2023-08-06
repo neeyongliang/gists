@@ -16,9 +16,18 @@
 - script-qemu-nographic.sh: 使用 qmeu 快速测试 rootfs 的脚本。
 - script-generate-mdbook-pdf.sh: 创建 mdbook 的 PDF 版本。
 - script-scp-performance-bench.sh: scp 性能基准测试。
+- script-after-install-centos.sh: 安装 CentOS 之后运行的脚本。
+- script-after-install-debian.sh: 安装 Debian/Ubuntu 之后运行的脚本。
+- script-generator-gobject-template.rb: 生成 GObject 模板代码的脚本。
+- script-install-ohmyzsh.sh: 从 gitee 安装 ohmyzsh 的脚本。
+- script-yuque-exporter.py: 从语雀导出知识库的脚本。
 
 ## 补丁类
 - patch-qt-5.6.3-webkit-backport.patch: QtWebKit 5.6.3 组件的兼容性补丁。
+
+## 配置类
+- config-keymap-swap-keys: 一个交换 Linux 键位的配置。
+- config-pylint-rc: 一个 pylint 的配置。
 
 # Code Snippet
 Write fool code, be a intelligent person. If one thing can do use script automatically, do not again by manual.
@@ -37,6 +46,15 @@ Write fool code, be a intelligent person. If one thing can do use script automat
 - script-qemu-nographic.sh: a script for qmeu to test rootfs quickly.
 - script-generate-mdbook-pdf.sh: a script for generate pdf file.
 - script-scp-performance-bench.sh: scp performance script.
+- script-after-install-centos.sh: a script install packages after install centos.
+- script-after-install-debian.sh: a script install packages after install debian/ubuntu.
+- script-generator-gobject-template.rb: a script gernate gobject template.
+- script-install-ohmyzsh.sh: a script install ohmyzsh from gitee mirror.
+- script-yuque-exporter.py: a script export libraries from yuque.
 
 ## Patch
 - patch-qt-5.6.3-webkit-backport.patch: QtWebkit 5.6.3 backport patch.
+
+## Config
+- config-keymap-swap-keys: a config for swap keys in linux.
+- config-pylint-rc: a config for pylint.

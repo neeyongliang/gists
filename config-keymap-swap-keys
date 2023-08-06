@@ -1,0 +1,22 @@
+!
+! Description: Swap Caps_Lock and Control_L
+! Usage: add following lines in .zshrc or .bash
+! if [ -s ~/.Xmodmap  ]; then
+!   xmodmap ~/.Xmodmap
+! fi
+!
+! Swap ctrl and caps
+remove Lock = Caps_Lock
+remove Control = Control_L
+keysym Control_L = Caps_Lock
+keysym Caps_Lock = Control_L
+add Lock = Caps_Lock
+add Control = Control_L
+
+! Swap ctrl and alt
+remove Control = Control_L
+remove Alt = Alt_L
+keysym Control_L = Alt_L
+keysym Alt_L = Control_L
+add Control
+add Alt
