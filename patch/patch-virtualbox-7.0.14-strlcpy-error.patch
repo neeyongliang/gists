@@ -1,0 +1,88 @@
+diff -Nuar /etc/VBoxGuestAdditions-7.0.14.orig/src/vboxguest-7.0.14/vboxguest/VBoxGuest-linux.c /etc/VBoxGuestAdditions-7.0.14/src/vboxguest-7.0.14/vboxguest/VBoxGuest-linux.c
+--- /etc/VBoxGuestAdditions-7.0.14.orig/src/vboxguest-7.0.14/vboxguest/VBoxGuest-linux.c	2024-01-15 22:02:02.000000000 +0800
++++ /etc/VBoxGuestAdditions-7.0.14/src/vboxguest-7.0.14/vboxguest/VBoxGuest-linux.c	2024-04-29 21:53:41.287040880 +0800
+@@ -1361,7 +1361,7 @@
+             RTLogGroupSettings(pLogger, pszValue);
+     }
+     else if (pParam->name[0] != 'd')
+-        strlcpy(&g_szLogGrp[0], pszValue, sizeof(g_szLogGrp));
++        strscpy(&g_szLogGrp[0], pszValue, sizeof(g_szLogGrp));
+ 
+     return 0;
+ }
+@@ -1387,7 +1387,7 @@
+             RTLogFlags(pLogger, pszValue);
+     }
+     else if (pParam->name[0] != 'd')
+-        strlcpy(&g_szLogFlags[0], pszValue, sizeof(g_szLogFlags));
++        strscpy(&g_szLogFlags[0], pszValue, sizeof(g_szLogFlags));
+     return 0;
+ }
+ 
+@@ -1412,7 +1412,7 @@
+             RTLogDestinations(pLogger, pszValue);
+     }
+     else if (pParam->name[0] != 'd')
+-        strlcpy(&g_szLogDst[0], pszValue, sizeof(g_szLogDst));
++        strscpy(&g_szLogDst[0], pszValue, sizeof(g_szLogDst));
+     return 0;
+ }
+ 
+diff -Nuar /etc/VBoxGuestAdditions-7.0.14.orig/src/vboxguest-7.0.14/vboxsf/vfsmod.c /etc/VBoxGuestAdditions-7.0.14/src/vboxguest-7.0.14/vboxsf/vfsmod.c
+--- /etc/VBoxGuestAdditions-7.0.14.orig/src/vboxguest-7.0.14/vboxsf/vfsmod.c	2024-01-15 22:02:02.000000000 +0800
++++ /etc/VBoxGuestAdditions-7.0.14/src/vboxguest-7.0.14/vboxsf/vfsmod.c	2024-04-29 21:52:53.230040880 +0800
+@@ -551,7 +551,7 @@
+         strncpy(mount_info->name, sf_name, sizeof(mount_info->name));
+         mount_info->name[sizeof(mount_info->name)-1] = 0;
+ # else
+-        strlcpy(mount_info->name, sf_name, sizeof(mount_info->name));
++        strscpy(mount_info->name, sf_name, sizeof(mount_info->name));
+ # endif
+     }
+ }
+@@ -633,7 +633,7 @@
+                 SFLOGRELBOTH(("vboxsf: Could not allocate memory for iocharset!\n"));
+                 return -ENOMEM;
+             }
+-            strlcpy(mount_info->nls_name, iocharset,
++            strscpy(mount_info->nls_name, iocharset,
+                 sizeof(mount_info->nls_name));
+             kfree(iocharset);
+             break;
+@@ -722,7 +722,7 @@
+                 SFLOGRELBOTH(("vboxsf: Could not allocate memory for automount tag!\n"));
+                 return -ENOMEM;
+             }
+-            strlcpy(mount_info->szTag, tag, sizeof(mount_info->szTag));
++            strscpy(mount_info->szTag, tag, sizeof(mount_info->szTag));
+             kfree(tag);
+             break;
+         default:
+@@ -1408,7 +1408,7 @@
+     switch (opt) {
+     case Opt_iocharset:
+     case Opt_nls:
+-        strlcpy(info->nls_name, param->string, sizeof(info->nls_name));
++        strscpy(info->nls_name, param->string, sizeof(info->nls_name));
+         break;
+     case Opt_uid:
+         info->uid = result.uint_32;
+@@ -1469,7 +1469,7 @@
+             printk(KERN_WARNING "vboxsf: cache mode (%u) is out of range, using default instead.\n", result.uint_32);
+         break;
+     case Opt_tag:
+-        strlcpy(info->szTag, param->string, sizeof(info->szTag));
++        strscpy(info->szTag, param->string, sizeof(info->szTag));
+         break;
+     default:
+         return invalf(fc, "Invalid mount option: '%s'", param->key);
+@@ -1528,7 +1528,7 @@
+     }
+ 
+     /* fc->source (the shared folder name) is set after vbsf_init_fs_ctx() */
+-    strlcpy(info->name, fc->source, sizeof(info->name));
++    strscpy(info->name, fc->source, sizeof(info->name));
+ 
+ # if RTLNX_VER_MAX(5,3,0)
+     return vfs_get_super(fc, vfs_get_independent_super, vbsf_read_super_aux);
+
